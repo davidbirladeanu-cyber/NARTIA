@@ -1,0 +1,1500 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Narția</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg:    #0e0e10;
+            --panel: #141416;
+            --line:  #222226;
+            --line2: #2a2a2f;
+            --text:  #e2e2e4;
+            --muted: #5a5a62;
+            --accent:#3dba6f;
+        }
+
+        html, body { height: 100%; overflow: hidden; font-family: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); }
+
+        /* ══════════════ START / LANDING PAGE ══════════════ */
+        #view-start {
+            position: fixed; inset: 0; display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            background: var(--bg);
+            z-index: 9999;
+            overflow: hidden;
+        }
+        #view-start.hidden { display: none; }
+
+        /* Animated background particles */
+        .start-bg {
+            position: absolute; inset: 0; overflow: hidden; z-index: 0;
+        }
+        .start-bg .orb {
+            position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.12;
+            animation: orbFloat 12s ease-in-out infinite alternate;
+        }
+        .start-bg .orb:nth-child(1) { width: 420px; height: 420px; background: #3dba6f; top: -120px; left: -80px; animation-delay: 0s; }
+        .start-bg .orb:nth-child(2) { width: 350px; height: 350px; background: #2090d0; bottom: -100px; right: -60px; animation-delay: -4s; }
+        .start-bg .orb:nth-child(3) { width: 280px; height: 280px; background: #a030b0; top: 50%; left: 60%; animation-delay: -8s; }
+        @keyframes orbFloat {
+            0%   { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(40px, -30px) scale(1.15); }
+        }
+
+        /* Grid pattern overlay */
+        .start-grid {
+            position: absolute; inset: 0; z-index: 1;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 48px 48px;
+        }
+
+        .start-content {
+            position: relative; z-index: 2;
+            display: flex; flex-direction: column; align-items: center; gap: 48px;
+            padding: 24px;
+        }
+
+        .start-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(48px, 10vw, 96px);
+            font-weight: 900;
+            letter-spacing: 0.06em;
+            background: linear-gradient(135deg, #3dba6f 0%, #2dd4bf 40%, #38bdf8 70%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-transform: uppercase;
+            line-height: 1;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+            text-shadow: 0 0 80px rgba(61, 186, 111, 0.3);
+            user-select: none;
+        }
+        @keyframes titleGlow {
+            0%   { filter: brightness(1) drop-shadow(0 0 20px rgba(61,186,111,0.2)); }
+            100% { filter: brightness(1.1) drop-shadow(0 0 40px rgba(61,186,111,0.35)); }
+        }
+
+        .start-subtitle {
+            font-size: 14px; color: var(--muted); letter-spacing: 0.15em;
+            text-transform: uppercase; margin-top: -32px;
+            animation: fadeInUp 0.8s ease 0.3s both;
+        }
+
+        .start-buttons {
+            display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+            animation: fadeInUp 0.8s ease 0.5s both;
+        }
+
+        .start-btn {
+            position: relative; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; gap: 12px;
+            width: 160px; height: 120px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            color: var(--text); cursor: pointer; transition: all 0.3s cubic-bezier(0.23,1,0.32,1);
+            backdrop-filter: blur(12px);
+            overflow: hidden;
+            text-decoration: none;
+        }
+        .start-btn::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(61,186,111,0.06) 100%);
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .start-btn:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 8px 32px rgba(61,186,111,0.15), 0 0 0 1px rgba(61,186,111,0.1);
+        }
+        .start-btn:hover::before { opacity: 1; }
+        .start-btn:active { transform: translateY(-1px); }
+
+        .start-btn-icon {
+            position: relative; z-index: 1;
+            width: 36px; height: 36px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .start-btn-icon svg { width: 28px; height: 28px; }
+
+        .start-btn-label {
+            position: relative; z-index: 1;
+            font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 520px) {
+            .start-buttons { flex-direction: column; align-items: center; }
+            .start-btn { width: 200px; height: 100px; flex-direction: row; gap: 16px; padding: 0 24px; }
+        }
+
+        /* ── Top nav (global, all views) ── */
+        #topnav {
+            position: fixed; top: 0; left: 0; right: 0; height: 48px;
+            background: var(--panel); border-bottom: 1px solid var(--line);
+            display: flex; align-items: center; padding: 0 16px; gap: 4px;
+            z-index: 5000;
+        }
+        #topnav .brand { font-size: 13px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; margin-right: 18px; color: var(--text); flex-shrink: 0; }
+        #topnav .tab {
+            background: none; border: none; color: var(--muted); font-size: 13px; font-weight: 600;
+            padding: 7px 14px; border-radius: 6px; cursor: pointer; transition: all 0.15s;
+        }
+        #topnav .tab:hover { color: var(--text); background: var(--line); }
+        #topnav .tab.active { color: var(--bg); background: var(--accent); }
+
+        .view { position: fixed; top: 48px; left: 0; right: 0; bottom: 0; display: none; }
+        .view.active { display: block; }
+
+        /* ══════════════ INVENTAR ADVANCEMENTS ══════════════ */
+        #view-advancements { overflow-y: auto; }
+        #adv-inv-wrap { max-width: 1400px; margin: 0 auto; padding: 36px 24px 60px; }
+        .adv-inv-cat-title { font-size: 18px; font-weight: 700; margin: 32px 0 16px; display: flex; align-items: center; gap: 8px; }
+        .adv-inv-grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 12px; grid-auto-rows: 1fr; }
+        .adv-inv-card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 8px; height: 100%; }
+        .adv-inv-card-head { display: flex; flex-direction: column; gap: 6px; }
+        .adv-inv-card-title { font-size: 11px; font-weight: 600; line-height: 1.3; }
+        .adv-inv-card-type { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; font-weight: 700; align-self: flex-start; }
+        .adv-inv-card-type.task { background: #333; color: #aaa; }
+        .adv-inv-card-type.goal { background: #183f4f; color: #55ccee; }
+        .adv-inv-card-type.challenge { background: #3b2854; color: #c8a0ff; }
+        .adv-inv-progress { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; margin-top: auto; }
+        .adv-inv-progress-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.4s; }
+        .adv-inv-counts { font-size: 11px; color: var(--muted); text-align: right; }
+
+        /* ══════════════ HARTĂ VIEW ══════════════ */
+        #view-harta #app { display: flex; width: 100%; height: 100%; }
+
+        #sidebar { width: 260px; min-width: 260px; background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; z-index: 1000; }
+        .s-head { padding: 22px 20px 18px; border-bottom: 1px solid var(--line); }
+        .s-title { font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text); }
+        .s-sub { margin-top: 3px; font-size: 11px; color: var(--muted); }
+        .s-section { padding: 16px 20px 8px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+        .s-list { flex: 1; overflow-y: auto; padding: 0 12px 12px; scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }
+        .group-row { padding: 12px 10px 4px; font-size: 11px; font-weight: 700; color: var(--text); letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; gap: 6px; user-select: none; margin-top: 4px; }
+        .group-row:first-child { margin-top: 0; }
+        .group-row:hover { color: var(--accent); }
+        .group-row.off { opacity: 0.5; }
+        .cat-row { display: flex; align-items: center; gap: 10px; padding: 6px 10px 6px 18px; border-radius: 6px; cursor: pointer; transition: background 0.1s; user-select: none; }
+        .cat-row:hover { background: var(--line); }
+        .cat-row.off { opacity: 0.35; }
+        .cat-emoji { width: 18px; font-size: 14px; text-align: center; flex-shrink: 0; line-height: 1; filter: grayscale(0.2); transition: filter 0.2s; }
+        .cat-row:hover .cat-emoji { filter: grayscale(0); }
+        .cat-name { flex: 1; font-size: 13px; color: var(--text); }
+        .emoji-pin {
+            background: var(--panel) !important;
+            border: 2px solid var(--line2) !important;
+            border-radius: 50% !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6) !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            line-height: 1;
+            padding-top: 1px;
+            padding-right: 1px;
+        }
+        .cat-count { font-size: 11px; color: var(--muted); min-width: 16px; text-align: right; }
+        .s-foot { padding: 14px 20px; border-top: 1px solid var(--line); display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); }
+        .pulse { width: 6px; height: 6px; border-radius: 50%; background: #3dba6f; animation: pulse 2.4s ease infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+        .timeline-ctrl { padding: 16px 20px; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 12px; }
+        .timeline-header { display: flex; align-items: center; justify-content: space-between; }
+        .btn-play { background: #3dba6f; color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; transition: opacity 0.2s; outline: none; min-width: 78px; }
+        .btn-play:hover { opacity: 0.8; }
+        .anim-date-txt { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; }
+
+        .slider-wrapper { display: none; width: 100%; }
+        body.timeline-active .slider-wrapper { display: block; }
+        input[type=range] { -webkit-appearance: none; background: var(--line2); height: 5px; border-radius: 3px; outline: none; width: 100%; cursor: pointer; }
+        input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #3dba6f; cursor: pointer; border: 2px solid var(--panel); box-shadow: 0 0 0 1px var(--line2); }
+
+        #map { flex: 1; height: 100%; background: var(--bg); transition: padding-top 0.3s; }
+
+        #mob-topbar, #mob-timeline-bar, #mob-fab, #drawer-backdrop, #drawer { display: none; }
+
+        @media (max-width: 640px) {
+            #sidebar { display: none; }
+            #mob-topbar { display: flex; position: fixed; top: 48px; left: 0; right: 0; height: 52px; background: var(--panel); border-bottom: 1px solid var(--line); align-items: center; padding: 0 16px; z-index: 2000; gap: 12px; }
+            .mob-title { font-size: 14px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; flex-shrink: 0; }
+            .mob-live { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--muted); margin-left: auto; }
+
+            #mob-timeline-bar { position: fixed; top: 100px; left: 0; right: 0; background: var(--panel); border-bottom: 1px solid var(--line); padding: 10px 16px; z-index: 1999; display: none; align-items: center; }
+            body.timeline-active #mob-timeline-bar { display: flex; }
+            body.timeline-active #view-harta #map { padding-top: 33px; }
+
+            #view-harta #app { flex-direction: column; }
+            #view-harta #map { width: 100%; height: 100%; padding-top: 52px; }
+            #mob-fab { display: flex; position: fixed; bottom: 24px; right: 16px; width: 52px; height: 52px; background: var(--panel); border: 1px solid var(--line2); border-radius: 50%; align-items: center; justify-content: center; cursor: pointer; z-index: 2000; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
+            #mob-fab svg { width: 22px; height: 22px; }
+            #drawer-backdrop { display: block; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 2500; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+            #drawer-backdrop.open { opacity: 1; pointer-events: all; }
+            #drawer { display: flex; flex-direction: column; position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); border-top: 1px solid var(--line2); border-radius: 16px 16px 0 0; z-index: 3000; max-height: 70vh; transform: translateY(100%); transition: transform 0.28s cubic-bezier(0.32,0.72,0,1); }
+            #drawer.open { transform: translateY(0); }
+            .drawer-handle { width: 36px; height: 4px; background: var(--line2); border-radius: 2px; margin: 12px auto 0; flex-shrink: 0; }
+            .drawer-title { padding: 14px 20px 6px; font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); flex-shrink: 0; }
+            .drawer-list { overflow-y: auto; padding: 0 12px 28px; flex: 1; }
+            .drawer-list .group-row { padding: 16px 10px 8px; font-size: 13px; }
+            .drawer-list .cat-row { padding: 10px 10px 10px 24px; }
+            .drawer-list .cat-name { font-size: 15px; }
+            .drawer-list .cat-count { font-size: 12px; }
+        }
+
+        .leaflet-popup-content-wrapper { background: var(--panel) !important; border: 1px solid var(--line2) !important; border-radius: 10px !important; box-shadow: 0 8px 32px rgba(0,0,0,0.7) !important; padding: 0 !important; overflow: hidden !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important; min-width: 220px; max-width: 280px; }
+        .leaflet-popup-content { margin: 0 !important; width: 100% !important; }
+        .leaflet-popup-tip-container { display: none; }
+        .leaflet-popup-close-button { color: var(--muted) !important; font-size: 18px !important; right: 10px !important; top: 8px !important; z-index: 10; width: 32px !important; height: 32px !important; }
+        .leaflet-popup-close-button:hover { color: var(--text) !important; }
+
+        .pc { display: flex; flex-direction: column; }
+        .pc-accent { height: 3px; width: 100%; }
+        .pc-img { width: 100%; height: 130px; object-fit: cover; display: block; background: var(--bg); }
+        .pc-img-ph { width: 100%; height: 72px; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+        .pc-body { padding: 14px 16px 16px; }
+        .pc-badge { display: inline-block; font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; margin-bottom: 8px; }
+        .pc-name { font-size: 15px; font-weight: 600; color: var(--text); line-height: 1.25; margin-bottom: 12px; }
+        .pc-sep { height: 1px; background: var(--line); margin-bottom: 10px; }
+        .pc-row { display: flex; align-items: baseline; gap: 6px; margin-bottom: 5px; font-size: 12px; }
+        .pc-label { color: var(--muted); min-width: 68px; flex-shrink: 0; }
+        .pc-val { color: var(--text); font-variant-numeric: tabular-nums; }
+
+        .custom-pin { background: none !important; border: none !important; }
+
+        /* ══════════════ JUCĂTORI VIEW ══════════════ */
+        #view-jucatori #app2 { display: flex; width: 100%; height: 100%; }
+        #players-list { width: 260px; min-width: 260px; background: var(--panel); border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+        #players-list .s-list { flex: 1; }
+        .player-row { display: flex; align-items: center; gap: 10px; padding: 10px 10px; border-radius: 6px; cursor: pointer; transition: background 0.1s; }
+        .player-row:hover { background: var(--line); }
+        .player-row.active { background: var(--line2); }
+        .player-avatar { width: 28px; height: 28px; border-radius: 6px; background: var(--line); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: var(--muted); }
+        .player-name { font-size: 13px; color: var(--text); }
+
+        #player-detail { flex: 1; overflow-y: auto; padding: 36px; scrollbar-width: thin; scrollbar-color: var(--line2) transparent; }
+        .empty-state { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); font-size: 13px; text-align: center; }
+        .pd-head { display: flex; align-items: center; gap: 16px; margin-bottom: 28px; }
+        .pd-avatar { width: 56px; height: 56px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line2); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: var(--accent); }
+        .pd-name { font-size: 22px; font-weight: 700; }
+        .stat-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 12px; }
+        .stat-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+        .stat-card .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+        .stat-card .value { font-size: 22px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums; }
+        .stat-card .sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+        .pd-section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 32px 0 12px; }
+
+        /* ══════════════ CLASAMENT VIEW ══════════════ */
+        #view-clasament { overflow-y: auto; }
+        #clasament-wrap { max-width: 720px; margin: 0 auto; padding: 36px 24px 60px; }
+        .cl-select-row { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; flex-wrap: wrap; }
+        .cl-select-row label { font-size: 12px; color: var(--muted); }
+        #cl-category {
+            background: var(--panel); color: var(--text); border: 1px solid var(--line2);
+            border-radius: 8px; padding: 9px 14px; font-size: 13px; cursor: pointer; outline: none;
+        }
+        .cl-table { width: 100%; border-collapse: collapse; }
+        .cl-table tr { border-bottom: 1px solid var(--line); }
+        .cl-table td { padding: 12px 8px; font-size: 13px; }
+        .cl-rank { width: 34px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .cl-rank.top1 { color: #e0c040; font-weight: 700; }
+        .cl-rank.top2 { color: #c0c0c8; font-weight: 700; }
+        .cl-rank.top3 { color: #cd8a4e; font-weight: 700; }
+        .cl-name { font-weight: 600; }
+        .cl-value { text-align: right; font-variant-numeric: tabular-nums; color: var(--accent); font-weight: 600; }
+
+        /* ══════════════ ADVANCEMENTS DETAIL ══════════════ */
+        .adv-summary { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+        .adv-summary .adv-big { font-size: 28px; font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; }
+        .adv-summary .adv-of  { font-size: 14px; color: var(--muted); }
+        .adv-progress-bar { width: 100%; height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; margin-bottom: 24px; }
+        .adv-progress-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #3dba6f, #2dd4bf); transition: width 0.5s ease; }
+
+        .adv-cat-card {
+            background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+            margin-bottom: 8px; overflow: hidden; transition: border-color 0.2s;
+        }
+        .adv-cat-card:hover { border-color: var(--line2); }
+        .adv-cat-header {
+            display: flex; align-items: center; gap: 10px; padding: 12px 16px;
+            cursor: pointer; user-select: none;
+        }
+        .adv-cat-header .adv-cat-icon { font-size: 16px; width: 24px; text-align: center; }
+        .adv-cat-header .adv-cat-name { flex: 1; font-size: 13px; font-weight: 600; text-transform: capitalize; }
+        .adv-cat-header .adv-cat-prog { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+        .adv-cat-header .adv-cat-pct  { font-size: 12px; font-weight: 700; color: var(--accent); min-width: 40px; text-align: right; }
+        .adv-cat-bar { flex: 0 0 80px; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+        .adv-cat-bar-fill { height: 100%; border-radius: 2px; background: var(--accent); transition: width 0.4s ease; }
+        .adv-cat-chevron { font-size: 10px; color: var(--muted); transition: transform 0.2s; }
+        .adv-cat-card.open .adv-cat-chevron { transform: rotate(90deg); }
+
+        .adv-cat-list { display: none; padding: 0 16px 12px; }
+        .adv-cat-card.open .adv-cat-list { display: block; }
+        .adv-item { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; font-size: 12px; border-bottom: 1px solid var(--line2); }
+        .adv-item:last-child { border-bottom: none; }
+        .adv-date { font-size: 10px; color: var(--muted); margin-top: 2px; font-weight: 500; }
+        .adv-item.done { color: var(--text); }
+        .adv-item.undone { color: var(--muted); opacity: 0.5; }
+        .adv-check { width: 14px; font-size: 11px; flex-shrink: 0; margin-top: 1px; }
+        .adv-item.done .adv-check { color: var(--accent); }
+        .adv-frame-challenge { color: #c8a0ff !important; }
+        .adv-frame-goal { color: #55ccee !important; }
+
+        /* RESPONSIVE CSS */
+        @media (max-width: 1200px) {
+            .adv-inv-grid { grid-template-columns: repeat(6, 1fr); }
+        }
+        @media (max-width: 800px) {
+            .adv-inv-grid { grid-template-columns: repeat(4, 1fr); }
+            #view-jucatori #app2 { flex-direction: column; }
+            #players-list { width: 100%; min-width: 100%; height: 250px; border-right: none; border-bottom: 1px solid var(--line); }
+            #player-detail { padding: 24px 16px; }
+            .pd-head { flex-direction: column; align-items: flex-start; margin-bottom: 20px; gap: 12px; }
+            .pd-avatar { width: 48px; height: 48px; font-size: 18px; }
+            .pd-name { font-size: 18px; }
+            .stat-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; }
+        }
+        @media (max-width: 500px) {
+            .adv-inv-grid { grid-template-columns: repeat(2, 1fr); }
+            #adv-inv-wrap { padding: 20px 16px; }
+            .adv-inv-cat-title { font-size: 15px; margin: 24px 0 12px; }
+            .adv-inv-card { padding: 10px; }
+            .adv-inv-card-title { font-size: 10px; }
+            #player-detail { padding: 16px 12px; }
+            .stat-grid { grid-template-columns: 1fr 1fr; }
+            .stat-card { padding: 12px 14px; }
+            .stat-card .value { font-size: 18px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ══════════════ START PAGE ══════════════ -->
+<div id="view-start">
+    <div class="start-bg">
+        <div class="orb"></div>
+        <div class="orb"></div>
+        <div class="orb"></div>
+    </div>
+    <div class="start-grid"></div>
+    <div class="start-content">
+        <div class="start-title">Narția</div>
+        <div class="start-subtitle">Server de Minecraft</div>
+        <div class="start-buttons">
+            <button class="start-btn" onclick="goTo('harta')">
+                <div class="start-btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#3dba6f" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                        <line x1="8" y1="2" x2="8" y2="18"/>
+                        <line x1="16" y1="6" x2="16" y2="22"/>
+                    </svg>
+                </div>
+                <span class="start-btn-label">Hartă</span>
+            </button>
+            <button class="start-btn" onclick="goTo('jucatori')">
+                <div class="start-btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#2090d0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <span class="start-btn-label">Jucători</span>
+            </button>
+            <button class="start-btn" onclick="goTo('clasament')">
+                <div class="start-btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#a030b0" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 20V10"/>
+                        <path d="M12 20V4"/>
+                        <path d="M6 20v-6"/>
+                    </svg>
+                </div>
+                <span class="start-btn-label">Clasament</span>
+            </button>
+            <button class="start-btn" onclick="goTo('advancements')">
+                <div class="start-btn-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#e0b030" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                    </svg>
+                </div>
+                <span class="start-btn-label">Realizări</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="topnav" style="display:none;">
+    <span class="brand" style="cursor:pointer;" onclick="goHome()">Narția</span>
+    <button class="tab active" data-view="harta">Hartă</button>
+    <button class="tab" data-view="jucatori">Jucători</button>
+    <button class="tab" data-view="clasament">Clasament</button>
+    <button class="tab" data-view="advancements">Realizări</button>
+</div>
+
+<!-- ══════════════ HARTĂ ══════════════ -->
+<div id="view-harta" class="view active">
+    <div id="app">
+        <div id="sidebar">
+            <div class="s-head">
+                <div class="s-title">Narția</div>
+                <div class="s-sub">Hartă interactivă</div>
+            </div>
+            <div class="timeline-ctrl">
+                <div class="timeline-header">
+                    <button class="btn-play" onclick="toggleTimeline()">▶ Play</button>
+                    <div class="anim-date-txt" style="display: none;"></div>
+                </div>
+                <div class="slider-wrapper">
+                    <input type="range" id="timeline-slider-desk" min="0" value="0" step="1" oninput="scrubTimeline(this.value)">
+                </div>
+            </div>
+            <div class="s-section">Categorii</div>
+            <div class="s-list" id="cat-list-desk"></div>
+            <div class="s-foot"><div class="pulse" id="pulse-desk"></div><span id="status-desk">Sincronizat live</span></div>
+        </div>
+        <div id="map"></div>
+    </div>
+
+    <div id="mob-topbar">
+        <span class="mob-title">Narția</span>
+        <button class="btn-play" style="padding: 4px 10px; min-width: auto;" onclick="toggleTimeline()">▶</button>
+        <span class="anim-date-txt" style="display: none; flex: 1; font-size: 11px;"></span>
+        <span class="mob-live"><div class="pulse" id="pulse-mob"></div><span id="status-mob">Live</span></span>
+    </div>
+
+    <div id="mob-timeline-bar">
+        <input type="range" id="timeline-slider-mob" min="0" value="0" step="1" style="width: 100%" oninput="scrubTimeline(this.value)">
+    </div>
+
+    <div id="mob-fab" onclick="toggleDrawer()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#e2e2e4" stroke-width="1.8" stroke-linecap="round">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+        </svg>
+    </div>
+    <div id="drawer-backdrop" onclick="toggleDrawer()"></div>
+    <div id="drawer">
+        <div class="drawer-handle"></div>
+        <div class="drawer-title">Categorii</div>
+        <div class="drawer-list" id="cat-list-mob"></div>
+    </div>
+</div>
+
+<!-- ══════════════ JUCĂTORI ══════════════ -->
+<div id="view-jucatori" class="view">
+    <div id="app2">
+        <div id="players-list">
+            <div class="s-head">
+                <div class="s-title">Jucători</div>
+                <div class="s-sub" id="players-count">se încarcă…</div>
+            </div>
+            <div class="s-list" id="players-list-inner"></div>
+        </div>
+        <div id="player-detail">
+            <div class="empty-state">Alege un jucător din stânga pentru a-i vedea statisticile.</div>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════ CLASAMENT ══════════════ -->
+<div id="view-clasament" class="view">
+    <div id="clasament-wrap">
+        <div class="s-title" style="margin-bottom: 4px;">Clasament</div>
+        <div class="s-sub" style="margin-bottom: 20px;">Compară jucătorii pe categorii.</div>
+        <div class="cl-select-row">
+            <label for="cl-category">Categorie</label>
+            <select id="cl-category"></select>
+        </div>
+        <table class="cl-table" id="cl-table"></table>
+    </div>
+</div>
+
+<!-- ══════════════ INVENTAR ADVANCEMENTS ══════════════ -->
+<div id="view-advancements" class="view">
+    <div id="adv-inv-wrap">
+        <div class="cl-select-row" style="display:flex; flex-wrap:wrap; gap:16px; align-items:center;">
+            <div>
+                <label for="adv-inv-sort" style="color:var(--muted); font-size: 13px;">Sortează după:</label>
+                <select id="adv-inv-sort" style="background:var(--line); color:var(--text); border:none; padding:6px 12px; border-radius:6px; outline:none; font-family:inherit; font-size:13px; margin-left:6px;">
+                    <option value="implicit">Implicit</option>
+                    <option value="progress">Cele mai făcute</option>
+                    <option value="first">Prima facere</option>
+                </select>
+            </div>
+            <label style="display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text); cursor:pointer; user-select:none;">
+                <input type="checkbox" id="adv-inv-group" style="accent-color:var(--accent); cursor:pointer;" checked>
+                Grupează pe categorii
+            </label>
+        </div>
+        <div id="adv-inv-content">
+            <div style="padding:16px;color:var(--muted)">se încarcă…</div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+/* ══════════════════════════════════════════════════════════
+   NAVIGARE ÎNTRE VIEW-URI + START PAGE
+   ══════════════════════════════════════════════════════════ */
+let mapInitialized = false;
+let playersLoaded = false;
+let clasamentLoaded = false;
+let advInventoryLoaded = false;
+
+function goTo(name) {
+    // ascunde start page, arată topnav
+    document.getElementById('view-start').classList.add('hidden');
+    document.getElementById('topnav').style.display = 'flex';
+    switchView(name);
+}
+
+function goHome() {
+    // oprește animații hartă dacă sunt active
+    if (typeof pauseTimeline === 'function') pauseTimeline();
+    // ascunde toate view-urile
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('#topnav .tab').forEach(t => t.classList.remove('active'));
+    // ascunde topnav, arată start page
+    document.getElementById('topnav').style.display = 'none';
+    document.getElementById('view-start').classList.remove('hidden');
+}
+
+document.querySelectorAll('#topnav .tab').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
+
+function switchView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('#topnav .tab').forEach(t => t.classList.toggle('active', t.dataset.view === name));
+    document.getElementById('view-' + name).classList.add('active');
+
+    if (name === 'harta') {
+        if (!mapInitialized) initMap();
+        else setTimeout(() => map && map.invalidateSize(), 50);
+    }
+    if (name === 'jucatori' && !playersLoaded) loadPlayersList();
+    if (name === 'clasament' && !clasamentLoaded) initClasament();
+    if (name === 'advancements' && !advInventoryLoaded) initAdvInventory();
+}
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     COD HARTĂ (identic funcțional cu varianta veche, doar
+     imaginile hărții (harta.png, drum.png), fișierul de date
+     (waypoint.csv) și folderul cu fotografiile pinurilor
+     (poze/) sunt acum toate în folderul map/.)
+     ══════════════════════════════════════════════════════════ -->
+<script>
+const minX=-1344, maxX=1487, minZ=-880, maxZ=1247;
+
+const GROUPS = {
+    asezari:   { label: 'Așezări' },
+    transport: { label: 'Transport' },
+    drumuri:   { label: 'Drumuri' },
+    structuri: { label: 'Structuri' }
+};
+
+const CATS = {
+    oras:       { label: 'Orașe',          color: '#e05555', group: 'asezari', emoji: '🏙️' },
+    sat:        { label: 'Sate',           color: '#e07a30', group: 'asezari', emoji: '🏘️' },
+    baza:       { label: 'Baze',           color: '#c8b820', group: 'asezari', emoji: '🏕️' },
+    metro:      { label: 'Metrouri',       color: '#2090d0', group: 'transport', emoji: '🚇' },
+    port:       { label: 'Porturi',        color: '#3060c8', group: 'transport', emoji: '⚓' },
+    pod:        { label: 'Poduri',         color: '#7040c0', group: 'transport', emoji: '🌉' },
+    tunel:      { label: 'Tunele',         color: '#808080', group: 'transport', emoji: '🕳️' },
+    telescaun:  { label: 'Telescaun',      color: '#ff8800', group: 'transport', emoji: '🚡' },
+    drum:       { label: 'Drumuri',        color: '#a030b0', group: 'drumuri', emoji: '🛣️' },
+    casa:       { label: 'Case',           color: '#5bba50', group: 'structuri', emoji: '🏠' },
+    ferma:      { label: 'Ferme',          color: '#6cc760', group: 'structuri', emoji: '🌾' },
+    gospodarie: { label: 'Gospodării',     color: '#7ed470', group: 'structuri', emoji: '🏡' },
+    uzina:      { label: 'Uzine',          color: '#8d9980', group: 'structuri', emoji: '🏭' },
+    magazin:    { label: 'Magazine',       color: '#d0aa40', group: 'structuri', emoji: '🏪' },
+    patrimoniu: { label: 'Patrimoniu',     color: '#c09030', group: 'structuri', emoji: '🏰' },
+    agrement:   { label: 'Agremente',      color: '#40d0aa', group: 'structuri', emoji: '🎢' },
+    atm:        { label: 'ATM',            color: '#10b080', group: 'structuri', emoji: '🏧' },
+    ham:        { label: 'Ham',            color: '#e0b030', group: 'structuri', emoji: '🐎' }
+};
+
+let map, W, H;
+let layers = {}, drumOverlay = null, visible = {}, lastCSV = '';
+let drawerOpen = false;
+
+let datedMarkers = [];
+let timelineDays = [];
+let isAnimating = false;
+let animInterval = null;
+let currentStep = -1;
+
+const DEFAULT_UNDATED_TS = new Date(2026, 0, 7, 0, 0, 0, 0).getTime();
+
+window.toggleDrawer = function() {
+    drawerOpen = !drawerOpen;
+    document.getElementById('drawer').classList.toggle('open', drawerOpen);
+    document.getElementById('drawer-backdrop').classList.toggle('open', drawerOpen);
+};
+
+function pin(catObj) {
+    const s = 28;
+    return L.divIcon({
+        html: `${catObj.emoji}`,
+        className: 'emoji-pin',
+        iconSize: [s,s], iconAnchor: [s/2,s/2], popupAnchor: [0,-s/2]
+    });
+}
+
+function fmtDate(raw) {
+    if (!raw || !raw.trim()) return null;
+    const s = raw.trim().replace(/\D/g,'');
+    if (s.length === 8) {
+        const mo = ['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'];
+        return `${parseInt(s.slice(0,2))} ${mo[parseInt(s.slice(2,4))-1]||s.slice(2,4)} ${s.slice(4)}`;
+    }
+    return raw.trim();
+}
+
+function tsToDateString(ts) {
+    if (!ts) return "Începuturi";
+    const d = new Date(ts);
+    const mo = ['ian','feb','mar','apr','mai','iun','iul','aug','sep','oct','nov','dec'];
+    return `${d.getDate()} ${mo[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function parseTimestamp(raw) {
+    if (!raw || !raw.trim()) return 0;
+    const s = raw.trim().replace(/\D/g,'');
+    if (s.length === 8) return new Date(s.slice(4,8), parseInt(s.slice(2,4))-1, s.slice(0,2), 0, 0, 0, 0).getTime();
+    return 0;
+}
+
+function buildPopup(p) {
+    const c = CATS[p.cat] || { label: p.cat, color: '#888' };
+    const col = c.color;
+    const date = fmtDate(p.date);
+    const hasImg = p.img && p.img.trim();
+    let imgSrc = '';
+    if (hasImg) {
+        imgSrc = p.img.trim();
+        if (!imgSrc.includes('/') && !imgSrc.includes('\\')) {
+            imgSrc = 'map/poze/' + imgSrc;
+        }
+    }
+    const imgHtml = hasImg
+        ? `<img class="pc-img" src="${imgSrc}" alt="${p.name}" onerror="this.style.display='none'">`
+        : `<div class="pc-img-ph" style="font-size: 36px; opacity: 0.8;">${c.emoji}</div>`;
+    return `<div class="pc">
+        <div class="pc-accent" style="background:${col}"></div>
+        ${imgHtml}
+        <div class="pc-body">
+            <div class="pc-badge" style="background:${col}22;color:${col}">${c.label}</div>
+            <div class="pc-name">${p.name}</div>
+            <div class="pc-sep"></div>
+            ${p.cat !== 'drum' ? `<div class="pc-row"><span class="pc-label">Coordonate</span><span class="pc-val">X ${p.x} · Z ${p.z}</span></div>` : ''}
+            ${date ? `<div class="pc-row"><span class="pc-label">Construit</span><span class="pc-val">${date}</span></div>` : ''}
+        </div>
+    </div>`;
+}
+
+let groupVisible = {};
+
+function makeGroupRow(gKey, isMobile) {
+    const group = GROUPS[gKey];
+    const row = document.createElement('div');
+    row.className = 'group-row';
+    row.id = (isMobile ? 'mob-' : 'desk-') + 'group-' + gKey;
+    row.innerHTML = `<span class="group-name">${group.label}</span>`;
+    row.addEventListener('click', () => { toggleGroup(gKey); });
+    return row;
+}
+
+function makeRow(k, isMobile) {
+    const cat = CATS[k];
+    const row = document.createElement('div');
+    row.className = 'cat-row sub-row';
+    row.id = (isMobile ? 'mob-' : 'desk-') + 'row-' + k;
+    row.innerHTML = `<div class="cat-emoji">${cat.emoji}</div><span class="cat-name">${cat.label}</span><span class="cat-count" id="${isMobile?'mob-':'desk-'}cnt-${k}">0</span>`;
+    row.addEventListener('click', () => { toggle(k); if (isMobile) toggleDrawer(); });
+    return row;
+}
+
+function buildSidebar() {
+    const desk = document.getElementById('cat-list-desk');
+    const mob  = document.getElementById('cat-list-mob');
+    desk.innerHTML = ''; mob.innerHTML = '';
+    Object.keys(GROUPS).forEach(gKey => {
+        groupVisible[gKey] = true;
+        desk.appendChild(makeGroupRow(gKey, false));
+        mob.appendChild(makeGroupRow(gKey, true));
+        Object.keys(CATS).filter(k => CATS[k].group === gKey).forEach(k => {
+            desk.appendChild(makeRow(k, false));
+            mob.appendChild(makeRow(k, true));
+        });
+    });
+}
+
+function updateGroupVisuals() {
+    Object.keys(GROUPS).forEach(gKey => {
+        const catsInGroup = Object.keys(CATS).filter(k => CATS[k].group === gKey);
+        const anyVisible = catsInGroup.some(k => visible[k]);
+        groupVisible[gKey] = anyVisible;
+        ['desk-group-','mob-group-'].forEach(p => {
+            const el = document.getElementById(p+gKey);
+            if (el) el.classList.toggle('off', !anyVisible);
+        });
+    });
+}
+
+function toggleGroup(gKey) {
+    const catsInGroup = Object.keys(CATS).filter(k => CATS[k].group === gKey);
+    const newState = !groupVisible[gKey];
+    groupVisible[gKey] = newState;
+    catsInGroup.forEach(k => {
+        if (visible[k] !== newState) {
+            visible[k] = newState;
+            ['desk-row-','mob-row-'].forEach(p => {
+                const el = document.getElementById(p+k);
+                if (el) el.classList.toggle('off', !visible[k]);
+            });
+            if (k === 'drum' && drumOverlay) {
+                if (visible[k]) drumOverlay.addTo(map);
+                else map.removeLayer(drumOverlay);
+            }
+        }
+    });
+    updateGroupVisuals();
+    drawStep(currentStep);
+}
+
+function toggle(k) {
+    visible[k] = !visible[k];
+    ['desk-row-','mob-row-'].forEach(p => {
+        const el = document.getElementById(p+k);
+        if (el) el.classList.toggle('off', !visible[k]);
+    });
+    if (k === 'drum' && drumOverlay) {
+        if (visible[k]) drumOverlay.addTo(map);
+        else map.removeLayer(drumOverlay);
+    }
+    updateGroupVisuals();
+    drawStep(currentStep);
+}
+
+function updateCounts(currentTs) {
+    let tempCounts = {};
+    Object.keys(CATS).forEach(k => tempCounts[k] = 0);
+    datedMarkers.forEach(item => { if (item.ts <= currentTs) tempCounts[item.cat]++; });
+    Object.keys(CATS).forEach(k => {
+        const v = tempCounts[k];
+        document.getElementById('desk-cnt-'+k) && (document.getElementById('desk-cnt-'+k).textContent = v);
+        document.getElementById('mob-cnt-'+k)  && (document.getElementById('mob-cnt-'+k).textContent  = v);
+    });
+}
+
+function mc2ll(x, z) {
+    return [H - ((z - minZ) / (maxZ - minZ)) * H, ((x - minX) / (maxX - minX)) * W];
+}
+
+function setCsvStatus(ok, detail) {
+    ['pulse-desk','pulse-mob'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.background = ok ? '#3dba6f' : '#e05555';
+    });
+    ['status-desk','status-mob'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = ok ? 'Sincronizat live' : ('Eroare: ' + detail);
+    });
+}
+
+async function fetchCSV() {
+    if (isAnimating) return;
+    try {
+        const r = await fetch('map/waypoint.csv?t=' + Date.now(), { cache:'no-store' });
+        if (!r.ok) { setCsvStatus(false, 'nu găsesc map/waypoint.csv (HTTP ' + r.status + ')'); console.error('waypoint.csv fetch failed:', r.status, r.url); return; }
+        const text = await r.text();
+        setCsvStatus(true);
+        if (text === lastCSV) return;
+        lastCSV = text;
+
+        datedMarkers = [];
+        let minTs = Infinity;
+        let maxTs = 0;
+
+        text.split('\n').slice(1).forEach(line => {
+            line = line.trim();
+            if (!line || line.startsWith('///')) return;
+            const p = line.split(',').map(s => s.trim());
+            if (p.length < 2) return;
+            const name = p[0], cat = p[1];
+            if (!CATS[cat] || cat === 'drum') return;
+            if (p.length < 4) return;
+            const x = +p[2], z = +p[3];
+            if (isNaN(x) || isNaN(z)) return;
+
+            const pt = { name, cat, x, z, date: p[4]||'', img: p[5]||'' };
+            let ts = parseTimestamp(pt.date);
+            if (ts === 0) ts = DEFAULT_UNDATED_TS;
+
+            const marker = L.marker(mc2ll(x, z), { icon: pin(CATS[cat]) })
+                .bindPopup(buildPopup(pt), { maxWidth: 280 });
+
+            datedMarkers.push({ marker, cat, ts, pt });
+            if (ts < minTs) minTs = ts;
+            if (ts > maxTs) maxTs = ts;
+        });
+
+        if (minTs !== Infinity) {
+            const an = new Date(minTs).getFullYear();
+            minTs = new Date(an, 0, 7, 0, 0, 0, 0).getTime();
+        }
+
+        timelineDays = [];
+        if (minTs !== Infinity && maxTs !== 0) {
+            let curr = new Date(minTs);
+            const end = new Date(maxTs);
+            curr.setHours(0,0,0,0);
+            end.setHours(0,0,0,0);
+            while (curr.getTime() <= end.getTime()) {
+                timelineDays.push(curr.getTime());
+                curr.setDate(curr.getDate() + 1);
+            }
+        }
+
+        const maxStep = Math.max(0, timelineDays.length - 1);
+        document.getElementById('timeline-slider-desk').max = maxStep;
+        document.getElementById('timeline-slider-mob').max = maxStep;
+        if (currentStep === -1 || currentStep > maxStep) currentStep = maxStep;
+
+        drawStep(currentStep);
+    } catch(e) { console.warn(e); setCsvStatus(false, e.message); }
+}
+
+function drawStep(step) {
+    Object.keys(CATS).forEach(k => layers[k]?.clearLayers());
+    const currentTs = timelineDays[step] || 0;
+    let dateText = currentTs ? tsToDateString(currentTs) : "Începuturi";
+
+    datedMarkers.forEach(item => {
+        if (item.ts <= currentTs && visible[item.cat]) item.marker.addTo(layers[item.cat]);
+    });
+
+    if (step >= timelineDays.length - 1) dateText = "Evoluție completă";
+
+    document.querySelectorAll('.anim-date-txt').forEach(d => {
+        d.style.display = 'block';
+        d.textContent = dateText;
+    });
+
+    document.getElementById('timeline-slider-desk').value = step;
+    document.getElementById('timeline-slider-mob').value = step;
+    updateCounts(currentTs);
+}
+
+function toggleTimeline() { if (isAnimating) pauseTimeline(); else playTimeline(); }
+
+function playTimeline() {
+    if (timelineDays.length === 0) return;
+    if (currentStep >= timelineDays.length - 1) currentStep = 0;
+    isAnimating = true;
+    document.body.classList.add('timeline-active');
+    document.querySelectorAll('.btn-play').forEach(btn => { btn.innerHTML = '⏸ Pauză'; btn.style.background = '#e07a30'; });
+    animInterval = setInterval(() => {
+        currentStep++;
+        drawStep(currentStep);
+        if (currentStep >= timelineDays.length - 1) pauseTimeline();
+    }, 250);
+}
+
+function pauseTimeline() {
+    isAnimating = false;
+    clearInterval(animInterval);
+    document.querySelectorAll('.btn-play').forEach(btn => { btn.innerHTML = '▶ Play'; btn.style.background = '#3dba6f'; });
+}
+
+function scrubTimeline(val) {
+    pauseTimeline();
+    document.body.classList.add('timeline-active');
+    currentStep = parseInt(val);
+    drawStep(currentStep);
+}
+
+function initMap() {
+    mapInitialized = true;
+    const img = new Image();
+    img.onload = function() { setupMap(this.width, this.height); };
+    img.onerror = function() { setupMap(2048, 1536); };
+    img.src = 'map/harta.png?v=' + Date.now();
+}
+
+function setupMap(imgW, imgH) {
+    W = imgW; H = imgH;
+    map = L.map('map', { crs: L.CRS.Simple, minZoom:-2, maxZoom:3, maxBounds:[[0,0],[H,W]], maxBoundsViscosity:0.9, tap:true });
+    L.imageOverlay('map/harta.png', [[0,0],[H,W]]).addTo(map);
+    map.setView([H/2, W/2], -1);
+
+    Object.keys(CATS).forEach(k => { layers[k] = L.layerGroup().addTo(map); visible[k] = true; });
+    drumOverlay = L.imageOverlay('map/drum.png', [[0,0],[H,W]], { opacity: 0.9 }).addTo(map);
+
+    buildSidebar();
+    fetchCSV();
+    setInterval(fetchCSV, 3000);
+}
+</script>
+
+<!-- ══════════════════════════════════════════════════════════
+     COD JUCĂTORI + CLASAMENT
+
+     Noua structură de fișiere (similară cu salvarea jocului):
+       
+       player_index.json                 → mapează nume la UUID
+         Ex: [{ "name": "DavidThedy", "uuid": "7ed0fabc..." }]
+       
+       player/stats/<uuid>.json          → copiat 1:1 din world/stats/
+       player/advancements/<uuid>.json   → copiat 1:1 din world/advancements/
+     ══════════════════════════════════════════════════════════ -->
+<script>
+const playerCache = {}; // nume -> { stats, adv, computed }
+let advRegistry = null;  // registrul tuturor advancement-urilor posibile
+
+const CAT_ICONS = {
+    adventure:'⚔️', animal:'🐾', mining:'⛏️', building:'🏗️', nether:'🔥',
+    monsters:'👾', biomes:'🌍', statistics:'📊', farming:'🌾', enchanting:'✨',
+    weaponry:'🗡️', end:'🟣', redstone:'🔴', challenges:'🏆', husbandry:'🐄',
+    potion:'🧪', bacap:'⭐', story:'📖', technical:'⚙️'
+};
+const CAT_LABELS = {
+    adventure:'Aventură', animal:'Animale', mining:'Minerit', building:'Construcții', nether:'Nether',
+    monsters:'Monștri', biomes:'Biomuri', statistics:'Statistici', farming:'Agricultură', enchanting:'Farmece',
+    weaponry:'Arme', end:'End', redstone:'Redstone', challenges:'Provocări', husbandry:'Creștere',
+    potion:'Poțiuni', bacap:'BACAP', story:'Poveste', technical:'Tehnic'
+};
+
+async function loadAdvRegistry() {
+    if (advRegistry) return advRegistry;
+    try {
+        const r = await fetch('advancements_registry.csv?t=' + Date.now());
+        if (!r.ok) return null;
+        let text = await r.text();
+        if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        advRegistry = {};
+        
+        let inQuote = false, row = [], val = '';
+        for (let i = 0; i < text.length; i++) {
+            let cc = text[i], nc = text[i+1];
+            if (inQuote) {
+                if (cc === '"' && nc === '"') { val += '"'; i++; }
+                else if (cc === '"') { inQuote = false; }
+                else { val += cc; }
+            } else {
+                if (cc === '"') { inQuote = true; }
+                else if (cc === ',') { row.push(val); val = ''; }
+                else if (cc === '\n' || cc === '\r') {
+                    row.push(val); val = '';
+                    if (row.length >= 6 && row[0] !== 'Key') {
+                        advRegistry[row[0]] = { t: row[1], c: row[2], f: row[3], i: row[4], d: row[5] };
+                    }
+                    row = [];
+                    if (cc === '\r' && nc === '\n') i++;
+                } else { val += cc; }
+            }
+        }
+        if (row.length > 0) {
+            row.push(val);
+            if (row.length >= 6 && row[0] !== 'Key') advRegistry[row[0]] = { t: row[1], c: row[2], f: row[3], i: row[4], d: row[5] };
+        }
+        return advRegistry;
+    } catch (e) { console.error(e); return null; }
+}
+
+const LUNI = ["Ian", "Feb", "Mar", "Apr", "Mai", "Iun", "Iul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function parseAdvDate(criteriaObj) {
+    if (!criteriaObj) return null;
+    let maxTime = 0;
+    Object.values(criteriaObj).forEach(dateStr => {
+        const t = new Date(dateStr).getTime();
+        if (t > maxTime) maxTime = t;
+    });
+    if (maxTime === 0) return null;
+    const d = new Date(maxTime);
+    return `${d.getDate().toString().padStart(2,'0')} ${LUNI[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+function fmtNum(n, decimals = 0) {
+    return n.toLocaleString('ro-RO', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+function fmtPlayTime(ticks) {
+    const mins = Math.floor(ticks / 20 / 60);
+    const m = mins % 60;
+    const h = Math.floor(mins / 60) % 24;
+    const d = Math.floor(mins / (60 * 24));
+    let s = '';
+    if (d > 0) s += d + 'z ';
+    if (h > 0 || d > 0) s += h + 'h ';
+    s += m + 'm';
+    return s || '0m';
+}
+
+/* Extrage un set de statistici "prietenoase" dintr-un stats.json vanilla */
+function computeStats(statsJson, advJson) {
+    const custom = (statsJson.stats && statsJson.stats['minecraft:custom']) || {};
+
+    let distanceCm = 0;
+    Object.keys(custom).forEach(k => {
+        if (k.endsWith('_one_cm')) distanceCm += (custom[k] || 0);
+    });
+    const distanceMeters = Math.floor(distanceCm / 100);
+
+    const playTicks = custom['minecraft:play_time'] ?? custom['minecraft:total_world_time'] ?? 0;
+    const deaths = custom['minecraft:deaths'] || 0;
+    const totalKills = (custom['minecraft:mob_kills'] || 0) + (custom['minecraft:player_kills'] || 0);
+    const damageDealt = custom['minecraft:damage_dealt'] || 0;
+    const damageTaken = custom['minecraft:damage_taken'] || 0;
+    const sleepInBed = custom['minecraft:sleep_in_bed'] || 0;
+
+    // advancements reale (excludem rețetele și DataVersion)
+    let advDone = 0, advTotal = 0;
+    if (advJson) {
+        Object.entries(advJson).forEach(([key, val]) => {
+            if (key === 'DataVersion') return;
+            if (key.includes('recipes/')) return;
+            advTotal++;
+            if (val && val.done) advDone++;
+        });
+    }
+
+    return {
+        distanceMeters, playTicks, totalKills, deaths,
+        damageDealt, damageTaken, sleepInBed, advDone, advTotal
+    };
+}
+
+async function tryFetchJson(url) {
+    try { const r = await fetch(url); if (!r.ok) return null; return await r.json(); }
+    catch (e) { return null; }
+}
+async function tryFetchText(url) {
+    try { const r = await fetch(url); if (!r.ok) return null; return (await r.text()).trim(); }
+    catch (e) { return null; }
+}
+
+async function fetchPlayerData(name, uuid) {
+    if (playerCache[name]) return playerCache[name];
+    
+    let statsRes = null, advRes = null;
+    
+    if (uuid) {
+        statsRes = await tryFetchJson(`player/stats/${uuid}.json`);
+        advRes = await tryFetchJson(`player/advancements/${uuid}.json`);
+    }
+
+    const computed = statsRes ? computeStats(statsRes, advRes) : null;
+    const data = { stats: statsRes, adv: advRes, computed };
+    playerCache[name] = data;
+    return data;
+}
+
+async function loadPlayerIndex() {
+    try {
+        const r = await fetch('player_index.json?t=' + Date.now());
+        if (!r.ok) return [];
+        const arr = await r.json();
+        // Suportă ambele formate:
+        //   vechi: ["DavidThedy", "IoanaIM"]
+        //   nou:   [{ "name": "DavidThedy", "uuid": "7ed0fabc-..." }, ...]
+        return arr.map(entry => {
+            if (typeof entry === 'string') return { name: entry, uuid: '' };
+            return { name: entry.name || '', uuid: entry.uuid || '' };
+        }).filter(e => e.name);
+    } catch (e) { return []; }
+}
+
+/* ── Jucători ── */
+let playerIndex = []; // cache global [{name, uuid}, ...]
+
+async function loadPlayersList() {
+    playersLoaded = true;
+    playerIndex = await loadPlayerIndex();
+    const listEl = document.getElementById('players-list-inner');
+    const countEl = document.getElementById('players-count');
+    listEl.innerHTML = '';
+
+    if (!playerIndex.length) {
+        countEl.textContent = 'niciun jucător găsit';
+        listEl.innerHTML = '<div style="padding:14px;font-size:12px;color:var(--muted)">Adaugă nume în player_index.json</div>';
+        return;
+    }
+
+    countEl.textContent = playerIndex.length + (playerIndex.length === 1 ? ' jucător' : ' jucători');
+
+    playerIndex.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'player-row';
+        row.id = 'prow-' + p.name;
+        row.innerHTML = `<div class="player-avatar">${p.name.slice(0,1).toUpperCase()}</div><div class="player-name">${p.name}</div>`;
+        row.addEventListener('click', () => selectPlayer(p.name, p.uuid));
+        listEl.appendChild(row);
+    });
+}
+
+async function selectPlayer(name, uuid) {
+    document.querySelectorAll('.player-row').forEach(r => r.classList.remove('active'));
+    document.getElementById('prow-' + name)?.classList.add('active');
+
+    const detail = document.getElementById('player-detail');
+    detail.innerHTML = '<div class="empty-state">se încarcă…</div>';
+
+    const [data, reg] = await Promise.all([fetchPlayerData(name, uuid), loadAdvRegistry()]);
+    if (!data.computed) {
+        detail.innerHTML = `<div class="empty-state">Nu am găsit date pentru ${name}</div>`;
+        return;
+    }
+    const s = data.computed;
+    const advJson = data.adv || {};
+
+    // Construiește breakdown pe categorii folosind registrul
+    let advHtml = '';
+    if (reg) {
+        // Grupează advancement-urile din registru pe categorii
+        const cats = {};
+        Object.entries(reg).forEach(([key, info]) => {
+            const cat = info.c || 'other';
+            if (!cats[cat]) cats[cat] = [];
+            const isDone = advJson[key] && advJson[key].done === true;
+            const dateStr = isDone ? parseAdvDate(advJson[key].criteria) : null;
+            cats[cat].push({ key, title: info.t, desc: info.d, frame: info.f, icon: info.i, done: isDone, date: dateStr });
+        });
+
+        // Sortează categoriile după numele localizat
+        const catOrder = Object.keys(cats).sort((a, b) =>
+            (CAT_LABELS[a] || a).localeCompare(CAT_LABELS[b] || b)
+        );
+
+        // Calculează total
+        let totalDone = 0, totalAll = 0;
+        catOrder.forEach(cat => {
+            const items = cats[cat];
+            totalAll += items.length;
+            totalDone += items.filter(i => i.done).length;
+        });
+        const totalPct = totalAll ? Math.round(totalDone / totalAll * 100) : 0;
+
+        advHtml = `
+            <div class="pd-section-title">Advancement-uri</div>
+            <div class="adv-summary">
+                <span class="adv-big">${totalDone}</span>
+                <span class="adv-of">/ ${totalAll} completate (${totalPct}%)</span>
+            </div>
+            <div class="adv-progress-bar"><div class="adv-progress-fill" style="width:${totalPct}%"></div></div>
+        `;
+
+        const frameWeight = { challenge: 3, goal: 2, task: 1 };
+
+        catOrder.forEach(cat => {
+            const items = cats[cat];
+            const done = items.filter(i => i.done).length;
+            const pct = items.length ? Math.round(done / items.length * 100) : 0;
+            const icon = CAT_ICONS[cat] || '📦';
+            const label = CAT_LABELS[cat] || cat;
+
+            // Sortează: challenge > goal > task, apoi alfabetic, indiferent dacă e gata
+            items.sort((a, b) => {
+                const fa = frameWeight[a.frame] || 0;
+                const fb = frameWeight[b.frame] || 0;
+                if (fa !== fb) return fb - fa;
+                return a.title.localeCompare(b.title);
+            });
+
+            const itemsHtml = items.map(it => {
+                const frameClass = it.frame === 'challenge' ? 'adv-frame-challenge' :
+                                   it.frame === 'goal' ? 'adv-frame-goal' : '';
+                return `<div class="adv-item ${it.done ? 'done' : 'undone'} ${frameClass}">
+                    <span class="adv-check">${it.done ? '✓' : '○'}</span>
+                    <div style="flex:1">
+                        <div>${it.title}</div>
+                        ${it.desc ? `<div style="font-size:10.5px; color:var(--muted); margin-top:3px; margin-bottom:2px; line-height:1.2;">${it.desc}</div>` : ''}
+                        ${it.date ? `<div class="adv-date">${it.date}</div>` : ''}
+                    </div>
+                </div>`;
+            }).join('');
+
+            advHtml += `<div class="adv-cat-card">
+                <div class="adv-cat-header" onclick="this.parentElement.classList.toggle('open')">
+                    <span class="adv-cat-icon">${icon}</span>
+                    <span class="adv-cat-name">${label}</span>
+                    <span class="adv-cat-prog">${done}/${items.length}</span>
+                    <div class="adv-cat-bar"><div class="adv-cat-bar-fill" style="width:${pct}%"></div></div>
+                    <span class="adv-cat-pct">${pct}%</span>
+                    <span class="adv-cat-chevron">▶</span>
+                </div>
+                <div class="adv-cat-list">${itemsHtml}</div>
+            </div>`;
+        });
+    }
+
+    detail.innerHTML = `
+        <div class="pd-head">
+            <div class="pd-avatar">${name.slice(0,1).toUpperCase()}</div>
+            <div class="pd-name">${name}</div>
+        </div>
+        <div class="stat-grid">
+            ${statCard('Timp de joc', fmtPlayTime(s.playTicks))}
+            ${statCard('Distanță parcursă', fmtNum(s.distanceMeters) + ' m')}
+            ${statCard('Ucideri', fmtNum(s.totalKills))}
+            ${statCard('Morți', fmtNum(s.deaths))}
+            ${statCard('Damage dat', fmtNum(s.damageDealt))}
+            ${statCard('Damage luat', fmtNum(s.damageTaken))}
+            ${statCard('Nopți dormite', fmtNum(s.sleepInBed))}
+        </div>
+        ${advHtml}
+    `;
+}
+
+function statCard(label, value, sub) {
+    return `<div class="stat-card">
+        <div class="label">${label}</div>
+        <div class="value">${value}</div>
+        ${sub ? `<div class="sub">${sub}</div>` : ''}
+    </div>`;
+}
+
+/* ── Clasament ── */
+const CATEGORIES = [
+    { key: 'playTicks',       label: 'Timp de joc',           fmt: v => fmtPlayTime(v) },
+    { key: 'distanceMeters',  label: 'Distanță parcursă', fmt: v => fmtNum(v) },
+    { key: 'totalKills',      label: 'Ucideri',               fmt: v => fmtNum(v) },
+    { key: 'deaths',          label: 'Morți',                 fmt: v => fmtNum(v) },
+    { key: 'damageDealt',     label: 'Damage dat',            fmt: v => fmtNum(v) },
+    { key: 'damageTaken',     label: 'Damage luat',           fmt: v => fmtNum(v) },
+    { key: 'sleepInBed',      label: 'Nopți dormite',         fmt: v => fmtNum(v) },
+    { key: 'advDone',         label: 'Realizări',             fmt: v => fmtNum(v) }
+];
+
+async function initClasament() {
+    clasamentLoaded = true;
+    const select = document.getElementById('cl-category');
+    select.innerHTML = CATEGORIES.map(c => `<option value="${c.key}">${c.label}</option>`).join('');
+    select.addEventListener('change', renderClasament);
+    await renderClasament();
+}
+
+async function renderClasament() {
+    const table = document.getElementById('cl-table');
+    table.innerHTML = '<tr><td style="padding:16px;color:var(--muted)">se încarcă…</td></tr>';
+
+    const players = await loadPlayerIndex();
+    const catKey = document.getElementById('cl-category').value;
+    const cat = CATEGORIES.find(c => c.key === catKey) || CATEGORIES[0];
+
+    const rows = [];
+    for (const p of players) {
+        const data = await fetchPlayerData(p.name, p.uuid);
+        if (data.computed) rows.push({ name: p.name, value: data.computed[cat.key] || 0 });
+    }
+    rows.sort((a, b) => b.value - a.value);
+
+    if (!rows.length) {
+        table.innerHTML = '<tr><td style="padding:16px;color:var(--muted)">Niciun jucător cu date valide.</td></tr>';
+        return;
+    }
+
+    let total = 0;
+    if (catKey === 'advDone') {
+        const uniqueAdvs = new Set();
+        for (const p of players) {
+            const data = await fetchPlayerData(p.name, p.uuid);
+            if (data.adv) {
+                Object.keys(data.adv).forEach(k => {
+                    if (data.adv[k].done && k !== 'DataVersion' && !k.includes('recipes/')) {
+                        uniqueAdvs.add(k);
+                    }
+                });
+            }
+        }
+        total = uniqueAdvs.size;
+    } else {
+        rows.forEach(r => total += r.value);
+    }
+
+    table.innerHTML = rows.map((r, i) => {
+        const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+        let pctHtml = '';
+        if (total > 0 && r.value > 0) {
+            const pct = ((r.value / total) * 100).toFixed(1);
+            pctHtml = ` <span style="font-size:11px; color:var(--muted); font-weight:normal; margin-left:6px;">(${pct}%)</span>`;
+        }
+        return `<tr>
+            <td class="cl-rank ${rankClass}">${i + 1}</td>
+            <td class="cl-name">${r.name}</td>
+            <td class="cl-value">${cat.fmt(r.value)}${pctHtml}</td>
+        </tr>`;
+    }).join('') + `
+        <tr>
+            <td class="cl-rank">#</td>
+            <td class="cl-name">TOTAL SERVER</td>
+            <td class="cl-value">${cat.fmt(total)}</td>
+        </tr>
+    `;
+}
+
+/* ── Inventar Advancements Global ── */
+let globalAdvStats = null;
+let totalPlayersCount = 0;
+
+function getAdvTimestamp(criteriaObj) {
+    if (!criteriaObj) return null;
+    let maxTime = 0;
+    Object.values(criteriaObj).forEach(dateStr => {
+        const t = new Date(dateStr).getTime();
+        if (t > maxTime) maxTime = t;
+    });
+    return maxTime === 0 ? null : maxTime;
+}
+
+function formatDateFromTs(ts) {
+    if (!ts || ts === Infinity) return null;
+    const d = new Date(ts);
+    return `${d.getDate().toString().padStart(2,'0')} ${LUNI[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+async function initAdvInventory() {
+    advInventoryLoaded = true;
+    document.getElementById('adv-inv-sort').addEventListener('change', renderAdvInventory);
+    document.getElementById('adv-inv-group').addEventListener('change', renderAdvInventory);
+    await loadGlobalAdvStats();
+    renderAdvInventory();
+}
+
+async function loadGlobalAdvStats() {
+    const players = await loadPlayerIndex();
+    totalPlayersCount = players.length;
+    globalAdvStats = {};
+    for (const p of players) {
+        const data = await fetchPlayerData(p.name, p.uuid);
+        if (data.adv) {
+            Object.keys(data.adv).forEach(k => {
+                if (data.adv[k].done) {
+                    if (!globalAdvStats[k]) globalAdvStats[k] = { count: 0, firstTs: Infinity, firstPlayer: '' };
+                    globalAdvStats[k].count++;
+                    const ts = getAdvTimestamp(data.adv[k].criteria);
+                    if (ts && ts < globalAdvStats[k].firstTs) {
+                        globalAdvStats[k].firstTs = ts;
+                        globalAdvStats[k].firstPlayer = p.name;
+                    }
+                }
+            });
+        }
+    }
+}
+
+async function renderAdvInventory() {
+    const content = document.getElementById('adv-inv-content');
+    const sortType = document.getElementById('adv-inv-sort').value; // 'implicit', 'progress', 'first'
+    const reg = await loadAdvRegistry();
+    if (!reg || !globalAdvStats) {
+        content.innerHTML = '<div style="padding:16px;color:var(--muted)">Eroare la încărcarea datelor.</div>';
+        return;
+    }
+
+    const frameWeight = { challenge: 3, goal: 2, task: 1 };
+    
+    const allItems = [];
+    Object.entries(reg).forEach(([key, info]) => {
+        const stats = globalAdvStats[key] || { count: 0, firstTs: Infinity, firstPlayer: '' };
+        allItems.push({
+            key, 
+            title: info.t, 
+            desc: info.d,
+            frame: info.f, 
+            cat: info.c || 'other',
+            count: stats.count,
+            firstTs: stats.firstTs,
+            firstPlayer: stats.firstPlayer
+        });
+    });
+
+    let html = '';
+
+    function renderInvCard(it) {
+        const pct = totalPlayersCount ? Math.round(it.count / totalPlayersCount * 100) : 0;
+        const typeStr = it.frame === 'challenge' ? 'Challenge' : it.frame === 'goal' ? 'Goal' : 'Task';
+        let subText = `${it.count} / ${totalPlayersCount} jucători`;
+        if (sortType === 'first' && it.firstTs !== Infinity) {
+            subText = `${it.firstPlayer}<br><span style="font-size:10px;color:var(--line2)">${formatDateFromTs(it.firstTs)}</span>`;
+        }
+        const tooltip = it.title + (it.desc ? `\n\n${it.desc}` : '');
+        return `<div class="adv-inv-card" title="${tooltip}">
+            <div class="adv-inv-card-head">
+                <div class="adv-inv-card-type ${it.frame}">${typeStr}</div>
+                <div class="adv-inv-card-title">${it.title}</div>
+            </div>
+            <div class="adv-inv-progress" style="margin-top: auto; margin-bottom: 4px; height: 3px;"><div class="adv-inv-progress-fill" style="width:${pct}%"></div></div>
+            <div class="adv-inv-counts" style="font-size:10px;">${subText}</div>
+        </div>`;
+    }
+
+    const groupByCat = document.getElementById('adv-inv-group').checked;
+
+    if (groupByCat) {
+        const cats = {};
+        allItems.forEach(it => {
+            if (!cats[it.cat]) cats[it.cat] = [];
+            cats[it.cat].push(it);
+        });
+        const catOrder = Object.keys(cats).sort((a, b) => (CAT_LABELS[a] || a).localeCompare(CAT_LABELS[b] || b));
+        
+        catOrder.forEach(cat => {
+            const items = cats[cat];
+            items.sort((a, b) => {
+                if (sortType === 'progress') {
+                    if (b.count !== a.count) return b.count - a.count;
+                } else if (sortType === 'first') {
+                    if (a.firstTs !== b.firstTs) return a.firstTs - b.firstTs;
+                } else {
+                    const fa = frameWeight[a.frame] || 0;
+                    const fb = frameWeight[b.frame] || 0;
+                    if (fa !== fb) return fb - fa;
+                }
+                return a.title.localeCompare(b.title);
+            });
+            const icon = CAT_ICONS[cat] || '📦';
+            const label = CAT_LABELS[cat] || cat;
+            
+            html += `<div class="adv-inv-cat-title"><span>${icon}</span> ${label}</div>`;
+            html += `<div class="adv-inv-grid">`;
+            html += items.map(it => renderInvCard(it)).join('');
+            html += `</div>`;
+        });
+    } else {
+        allItems.sort((a, b) => {
+            if (sortType === 'progress') {
+                if (b.count !== a.count) return b.count - a.count;
+            } else if (sortType === 'first') {
+                if (a.firstTs !== b.firstTs) return a.firstTs - b.firstTs;
+            } else {
+                const fa = frameWeight[a.frame] || 0;
+                const fb = frameWeight[b.frame] || 0;
+                if (fa !== fb) return fb - fa;
+            }
+            return a.title.localeCompare(b.title);
+        });
+
+        html += `<div class="adv-inv-grid" style="margin-top: 16px;">`;
+        html += allItems.map(it => renderInvCard(it)).join('');
+        html += `</div>`;
+    }
+
+    content.innerHTML = html;
+}
+</script>
+</body>
+</html>
